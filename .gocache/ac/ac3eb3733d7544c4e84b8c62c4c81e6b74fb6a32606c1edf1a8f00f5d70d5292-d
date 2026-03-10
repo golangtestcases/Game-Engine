@@ -1,0 +1,12 @@
+./conv.go
+./doc.go
+./matmn.go
+./matrix.go
+./mempool.go
+./project.go
+./quat.go
+./shapes.go
+./transform.go
+./util.go
+./vecn.go
+./vector.go

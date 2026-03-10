@@ -1,0 +1,42 @@
+{
+  "window": {
+    "width": 1920,
+    "height": 1080,
+    "title": "Go Game Engine",
+    "fullscreen": false,
+    "vsync": false
+  },
+  "graphics": {
+    "quality": "high",
+    "fov": 60,
+    "near": 0.1,
+    "far": 100,
+    "streaming": {
+      "cell_size": 72,
+      "active_radius": 3,
+      "visible_radius": 3,
+      "unload_radius": 5,
+      "fog_start": 150,
+      "fog_end": 260,
+      "fog_density": 1.15,
+      "terrain_lod_near_distance": 95,
+      "terrain_lod_mid_distance": 185,
+      "terrain_lod_hysteresis": 14,
+      "terrain_lod_mid_step": 2,
+      "terrain_lod_far_step": 4,
+      "terrain_lod_far_cull_distance": 0,
+      "decor_lod_near_distance": 80,
+      "decor_lod_mid_distance": 150,
+      "decor_lod_hysteresis": 12,
+      "decor_lod_mid_density": 0.55,
+      "decor_lod_far_density": 0.2,
+      "decor_lod_mid_min_radius": 1.05,
+      "decor_lod_far_min_radius": 1.45,
+      "decor_lod_far_cull_distance": 210,
+      "debug_overlay": false,
+      "debug_cell_bounds": false,
+      "debug_lod_overlay": false,
+      "debug_lod_colors": false
+    }
+  }
+}

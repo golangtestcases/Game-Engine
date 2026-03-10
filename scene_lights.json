@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "point_lights": [
+    {
+      "position": {
+        "X": 9,
+        "Y": -2.2,
+        "Z": 7
+      },
+      "color": {
+        "X": 0.18,
+        "Y": 0.74,
+        "Z": 0.98
+      },
+      "intensity": 1.45,
+      "range": 240,
+      "enabled": true,
+      "preset": "medium"
+    },
+    {
+      "position": {
+        "X": -14.156233,
+        "Y": -7.86222,
+        "Z": -10.001031
+      },
+      "color": {
+        "X": 0.28,
+        "Y": 0.86,
+        "Z": 0.62
+      },
+      "intensity": 3.9,
+      "range": 340,
+      "enabled": true,
+      "preset": "large"
+    },
+    {
+      "position": {
+        "X": -10.148383,
+        "Y": -8.184048,
+        "Z": -18.557167
+      },
+      "color": {
+        "X": 0.28,
+        "Y": 0.86,
+        "Z": 0.62
+      },
+      "intensity": 3.9,
+      "range": 340,
+      "enabled": true,
+      "preset": "large"
+    },
+    {
+      "position": {
+        "X": -13.9759655,
+        "Y": -7.638901,
+        "Z": -5.4421253
+      },
+      "color": {
+        "X": 0.16,
+        "Y": 0.78,
+        "Z": 0.96
+      },
+      "intensity": 1.7,
+      "range": 180,
+      "enabled": true,
+      "preset": "small"
+    },
+    {
+      "position": {
+        "X": -12.708183,
+        "Y": -7.6689105,
+        "Z": -4.085146
+      },
+      "color": {
+        "X": 0.2,
+        "Y": 0.88,
+        "Z": 0.74
+      },
+      "intensity": 2.7,
+      "range": 340,
+      "enabled": true,
+      "preset": "medium"
+    },
+    {
+      "position": {
+        "X": -15.9653225,
+        "Y": -7.7860045,
+        "Z": -3.711072
+      },
+      "color": {
+        "X": 0.28,
+        "Y": 0.86,
+        "Z": 0.62
+      },
+      "intensity": 3.9,
+      "range": 520,
+      "enabled": true,
+      "preset": "large"
+    }
+  ]
+}
