@@ -54,13 +54,10 @@ func (g *subnauticaGame) Update(ctx *engine.Context) error {
 		g.applyProceduralBobbing(ctx, g.localControl.LastVerticalAxis)
 	}
 
-	if g.oceanSystem != nil {
-		g.oceanSystem.SetWaterLevel(g.authoritative.WaterLevel)
-	}
+	g.syncEnvironmentRuntimeState()
 	if g.worldStreaming != nil {
 		g.worldStreaming.UpdateStreaming(g.localPlayerPosition())
 	}
-	g.syncSunLighting()
 	g.updateCreatures(ctx)
 
 	physicalDelta := g.localPlayerPosition().Sub(playerBaseStart)

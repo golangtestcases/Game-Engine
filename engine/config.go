@@ -153,86 +153,93 @@ func (c Config) withDefaults() Config {
 		c.Graphics.Far = 100.0
 	}
 
-	if c.Graphics.Streaming.CellSize <= 0 {
-		c.Graphics.Streaming.CellSize = 72.0
+	c.Graphics.Streaming = SanitizeStreamingConfig(c.Graphics.Streaming)
+	return c
+}
+
+// SanitizeStreamingConfig normalizes world-streaming settings for runtime use.
+func SanitizeStreamingConfig(cfg StreamingConfig) StreamingConfig {
+	if cfg.CellSize <= 0 {
+		cfg.CellSize = 72.0
 	}
-	if c.Graphics.Streaming.ActiveRadius < 1 {
-		c.Graphics.Streaming.ActiveRadius = 3
+	if cfg.ActiveRadius < 1 {
+		cfg.ActiveRadius = 3
 	}
-	if c.Graphics.Streaming.VisibleRadius < 1 {
-		c.Graphics.Streaming.VisibleRadius = c.Graphics.Streaming.ActiveRadius
+	if cfg.VisibleRadius < 1 {
+		cfg.VisibleRadius = cfg.ActiveRadius
 	}
-	if c.Graphics.Streaming.VisibleRadius > c.Graphics.Streaming.ActiveRadius {
-		c.Graphics.Streaming.VisibleRadius = c.Graphics.Streaming.ActiveRadius
+	if cfg.VisibleRadius > cfg.ActiveRadius {
+		cfg.VisibleRadius = cfg.ActiveRadius
 	}
-	if c.Graphics.Streaming.UnloadRadius <= c.Graphics.Streaming.ActiveRadius {
-		c.Graphics.Streaming.UnloadRadius = c.Graphics.Streaming.ActiveRadius + 2
+	if cfg.UnloadRadius <= cfg.ActiveRadius {
+		cfg.UnloadRadius = cfg.ActiveRadius + 2
 	}
-	if c.Graphics.Streaming.FogStart <= 0 {
-		c.Graphics.Streaming.FogStart = 150.0
+	if cfg.FogStart <= 0 {
+		cfg.FogStart = 150.0
 	}
-	if c.Graphics.Streaming.FogEnd <= c.Graphics.Streaming.FogStart+1 {
-		c.Graphics.Streaming.FogEnd = c.Graphics.Streaming.FogStart + 110.0
+	if cfg.FogEnd <= cfg.FogStart+1 {
+		cfg.FogEnd = cfg.FogStart + 110.0
 	}
-	if c.Graphics.Streaming.FogDensity <= 0 {
-		c.Graphics.Streaming.FogDensity = 1.15
+	if cfg.FogDensity <= 0 {
+		cfg.FogDensity = 1.15
 	}
-	if c.Graphics.Streaming.TerrainLODNearDistance <= 0 {
-		c.Graphics.Streaming.TerrainLODNearDistance = 95.0
+	if cfg.TerrainLODNearDistance <= 0 {
+		cfg.TerrainLODNearDistance = cfg.CellSize * 1.35
 	}
-	if c.Graphics.Streaming.TerrainLODMidDistance <= c.Graphics.Streaming.TerrainLODNearDistance+1.0 {
-		c.Graphics.Streaming.TerrainLODMidDistance = c.Graphics.Streaming.TerrainLODNearDistance + 90.0
+	if cfg.TerrainLODMidDistance <= cfg.TerrainLODNearDistance+1.0 {
+		cfg.TerrainLODMidDistance = cfg.TerrainLODNearDistance + cfg.CellSize*1.25
 	}
-	if c.Graphics.Streaming.TerrainLODHysteresis < 0 {
-		c.Graphics.Streaming.TerrainLODHysteresis = 0
+	if cfg.TerrainLODHysteresis < 0 {
+		cfg.TerrainLODHysteresis = 0
 	}
-	if c.Graphics.Streaming.TerrainLODHysteresis == 0 {
-		c.Graphics.Streaming.TerrainLODHysteresis = 14.0
+	if cfg.TerrainLODHysteresis == 0 {
+		cfg.TerrainLODHysteresis = cfg.CellSize * 0.2
 	}
-	if c.Graphics.Streaming.TerrainLODMidStep < 1 {
-		c.Graphics.Streaming.TerrainLODMidStep = 2
+	if cfg.TerrainLODMidStep < 1 {
+		cfg.TerrainLODMidStep = 2
 	}
-	if c.Graphics.Streaming.TerrainLODFarStep <= c.Graphics.Streaming.TerrainLODMidStep {
-		c.Graphics.Streaming.TerrainLODFarStep = c.Graphics.Streaming.TerrainLODMidStep * 2
+	if cfg.TerrainLODMidStep > 8 {
+		cfg.TerrainLODMidStep = 8
 	}
-	if c.Graphics.Streaming.TerrainLODFarStep > 16 {
-		c.Graphics.Streaming.TerrainLODFarStep = 16
+	if cfg.TerrainLODFarStep <= cfg.TerrainLODMidStep {
+		cfg.TerrainLODFarStep = cfg.TerrainLODMidStep * 2
 	}
-	if c.Graphics.Streaming.TerrainLODFarCullDistance > 0 &&
-		c.Graphics.Streaming.TerrainLODFarCullDistance <= c.Graphics.Streaming.TerrainLODMidDistance {
-		c.Graphics.Streaming.TerrainLODFarCullDistance = c.Graphics.Streaming.TerrainLODMidDistance + c.Graphics.Streaming.CellSize
+	if cfg.TerrainLODFarStep > 16 {
+		cfg.TerrainLODFarStep = 16
+	}
+	if cfg.TerrainLODFarCullDistance > 0 && cfg.TerrainLODFarCullDistance <= cfg.TerrainLODMidDistance {
+		cfg.TerrainLODFarCullDistance = cfg.TerrainLODMidDistance + cfg.CellSize
 	}
 
-	if c.Graphics.Streaming.DecorLODNearDistance <= 0 {
-		c.Graphics.Streaming.DecorLODNearDistance = 80.0
+	if cfg.DecorLODNearDistance <= 0 {
+		cfg.DecorLODNearDistance = cfg.CellSize * 1.1
 	}
-	if c.Graphics.Streaming.DecorLODMidDistance <= c.Graphics.Streaming.DecorLODNearDistance+1.0 {
-		c.Graphics.Streaming.DecorLODMidDistance = c.Graphics.Streaming.DecorLODNearDistance + 70.0
+	if cfg.DecorLODMidDistance <= cfg.DecorLODNearDistance+1.0 {
+		cfg.DecorLODMidDistance = cfg.DecorLODNearDistance + cfg.CellSize
 	}
-	if c.Graphics.Streaming.DecorLODHysteresis < 0 {
-		c.Graphics.Streaming.DecorLODHysteresis = 0
+	if cfg.DecorLODHysteresis < 0 {
+		cfg.DecorLODHysteresis = 0
 	}
-	if c.Graphics.Streaming.DecorLODHysteresis == 0 {
-		c.Graphics.Streaming.DecorLODHysteresis = 12.0
+	if cfg.DecorLODHysteresis == 0 {
+		cfg.DecorLODHysteresis = cfg.CellSize * 0.17
 	}
-	if c.Graphics.Streaming.DecorLODMidDensity <= 0 || c.Graphics.Streaming.DecorLODMidDensity > 1 {
-		c.Graphics.Streaming.DecorLODMidDensity = 0.55
+	if cfg.DecorLODMidDensity <= 0 || cfg.DecorLODMidDensity > 1 {
+		cfg.DecorLODMidDensity = 0.55
 	}
-	if c.Graphics.Streaming.DecorLODFarDensity < 0 || c.Graphics.Streaming.DecorLODFarDensity > 1 {
-		c.Graphics.Streaming.DecorLODFarDensity = 0.20
+	if cfg.DecorLODFarDensity < 0 || cfg.DecorLODFarDensity > 1 {
+		cfg.DecorLODFarDensity = 0.20
 	}
-	if c.Graphics.Streaming.DecorLODFarDensity > c.Graphics.Streaming.DecorLODMidDensity {
-		c.Graphics.Streaming.DecorLODFarDensity = c.Graphics.Streaming.DecorLODMidDensity
+	if cfg.DecorLODFarDensity > cfg.DecorLODMidDensity {
+		cfg.DecorLODFarDensity = cfg.DecorLODMidDensity
 	}
-	if c.Graphics.Streaming.DecorLODMidMinRadius < 0 {
-		c.Graphics.Streaming.DecorLODMidMinRadius = 0
+	if cfg.DecorLODMidMinRadius < 0 {
+		cfg.DecorLODMidMinRadius = 0
 	}
-	if c.Graphics.Streaming.DecorLODFarMinRadius < c.Graphics.Streaming.DecorLODMidMinRadius {
-		c.Graphics.Streaming.DecorLODFarMinRadius = c.Graphics.Streaming.DecorLODMidMinRadius
+	if cfg.DecorLODFarMinRadius < cfg.DecorLODMidMinRadius {
+		cfg.DecorLODFarMinRadius = cfg.DecorLODMidMinRadius
 	}
-	if c.Graphics.Streaming.DecorLODFarCullDistance > 0 &&
-		c.Graphics.Streaming.DecorLODFarCullDistance <= c.Graphics.Streaming.DecorLODMidDistance {
-		c.Graphics.Streaming.DecorLODFarCullDistance = c.Graphics.Streaming.DecorLODMidDistance + c.Graphics.Streaming.CellSize*0.5
+	if cfg.DecorLODFarCullDistance > 0 && cfg.DecorLODFarCullDistance <= cfg.DecorLODMidDistance {
+		cfg.DecorLODFarCullDistance = cfg.DecorLODMidDistance + cfg.CellSize*0.5
 	}
-	return c
+	return cfg
 }

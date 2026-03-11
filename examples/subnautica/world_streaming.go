@@ -32,25 +32,9 @@ func (l cellLODLevel) label() string {
 }
 
 // CellCoord задает дискретную координату world-клетки на плоскости XZ.
-type CellCoord struct {
-	X int
-	Z int
-}
-
-// CellBounds хранит мировые границы клетки и сферу для быстрого culling.
-type CellBounds struct {
-	Min            mgl32.Vec3
-	Max            mgl32.Vec3
-	Center         mgl32.Vec3
-	BoundingRadius float32
-}
-
-// CellState отражает runtime-состояние клетки в стриминге.
-type CellState struct {
-	Loaded  bool
-	Active  bool
-	Visible bool
-}
+type CellCoord = engine.StreamingCellCoord
+type CellBounds = engine.StreamingCellBounds
+type CellState = engine.StreamingCellState
 
 // WorldCell объединяет ownership данных, принадлежащих конкретной клетке.
 type WorldCell struct {
@@ -139,7 +123,7 @@ type worldStreamingManager struct {
 }
 
 func newWorldStreamingManager(renderer *engine.Renderer, terrain *objects.EditableTerrain, cfg engine.StreamingConfig) *worldStreamingManager {
-	cfg = sanitizeStreamingConfig(cfg)
+	cfg = engine.SanitizeStreamingConfig(cfg)
 	m := &worldStreamingManager{
 		renderer:     renderer,
 		terrain:      terrain,
@@ -152,94 +136,6 @@ func newWorldStreamingManager(renderer *engine.Renderer, terrain *objects.Editab
 	}
 	m.refreshTerrainCellRange()
 	return m
-}
-
-func sanitizeStreamingConfig(cfg engine.StreamingConfig) engine.StreamingConfig {
-	if cfg.CellSize <= 0 {
-		cfg.CellSize = 72
-	}
-	if cfg.ActiveRadius < 1 {
-		cfg.ActiveRadius = 3
-	}
-	if cfg.VisibleRadius < 1 {
-		cfg.VisibleRadius = cfg.ActiveRadius
-	}
-	if cfg.VisibleRadius > cfg.ActiveRadius {
-		cfg.VisibleRadius = cfg.ActiveRadius
-	}
-	if cfg.UnloadRadius <= cfg.ActiveRadius {
-		cfg.UnloadRadius = cfg.ActiveRadius + 2
-	}
-	if cfg.FogStart <= 0 {
-		cfg.FogStart = 150
-	}
-	if cfg.FogEnd <= cfg.FogStart+1 {
-		cfg.FogEnd = cfg.FogStart + 110
-	}
-	if cfg.FogDensity <= 0 {
-		cfg.FogDensity = 1.15
-	}
-
-	if cfg.TerrainLODNearDistance <= 0 {
-		cfg.TerrainLODNearDistance = cfg.CellSize * 1.35
-	}
-	if cfg.TerrainLODMidDistance <= cfg.TerrainLODNearDistance+1 {
-		cfg.TerrainLODMidDistance = cfg.TerrainLODNearDistance + cfg.CellSize*1.25
-	}
-	if cfg.TerrainLODHysteresis < 0 {
-		cfg.TerrainLODHysteresis = 0
-	}
-	if cfg.TerrainLODHysteresis == 0 {
-		cfg.TerrainLODHysteresis = cfg.CellSize * 0.2
-	}
-	if cfg.TerrainLODMidStep < 1 {
-		cfg.TerrainLODMidStep = 2
-	}
-	if cfg.TerrainLODMidStep > 8 {
-		cfg.TerrainLODMidStep = 8
-	}
-	if cfg.TerrainLODFarStep <= cfg.TerrainLODMidStep {
-		cfg.TerrainLODFarStep = cfg.TerrainLODMidStep * 2
-	}
-	if cfg.TerrainLODFarStep > 16 {
-		cfg.TerrainLODFarStep = 16
-	}
-	if cfg.TerrainLODFarCullDistance > 0 && cfg.TerrainLODFarCullDistance <= cfg.TerrainLODMidDistance {
-		cfg.TerrainLODFarCullDistance = cfg.TerrainLODMidDistance + cfg.CellSize
-	}
-
-	if cfg.DecorLODNearDistance <= 0 {
-		cfg.DecorLODNearDistance = cfg.CellSize * 1.1
-	}
-	if cfg.DecorLODMidDistance <= cfg.DecorLODNearDistance+1 {
-		cfg.DecorLODMidDistance = cfg.DecorLODNearDistance + cfg.CellSize
-	}
-	if cfg.DecorLODHysteresis < 0 {
-		cfg.DecorLODHysteresis = 0
-	}
-	if cfg.DecorLODHysteresis == 0 {
-		cfg.DecorLODHysteresis = cfg.CellSize * 0.17
-	}
-	if cfg.DecorLODMidDensity <= 0 || cfg.DecorLODMidDensity > 1 {
-		cfg.DecorLODMidDensity = 0.55
-	}
-	if cfg.DecorLODFarDensity < 0 || cfg.DecorLODFarDensity > 1 {
-		cfg.DecorLODFarDensity = 0.2
-	}
-	if cfg.DecorLODFarDensity > cfg.DecorLODMidDensity {
-		cfg.DecorLODFarDensity = cfg.DecorLODMidDensity
-	}
-	if cfg.DecorLODMidMinRadius < 0 {
-		cfg.DecorLODMidMinRadius = 0
-	}
-	if cfg.DecorLODFarMinRadius < cfg.DecorLODMidMinRadius {
-		cfg.DecorLODFarMinRadius = cfg.DecorLODMidMinRadius
-	}
-	if cfg.DecorLODFarCullDistance > 0 && cfg.DecorLODFarCullDistance <= cfg.DecorLODMidDistance {
-		cfg.DecorLODFarCullDistance = cfg.DecorLODMidDistance + cfg.CellSize*0.5
-	}
-
-	return cfg
 }
 
 func (m *worldStreamingManager) refreshTerrainCellRange() {
@@ -266,19 +162,7 @@ func (m *worldStreamingManager) isTerrainCoord(coord CellCoord) bool {
 }
 
 func (m *worldStreamingManager) clampCoordToTerrain(coord CellCoord) CellCoord {
-	if coord.X < m.minTerrainCellX {
-		coord.X = m.minTerrainCellX
-	}
-	if coord.X > m.maxTerrainCellX {
-		coord.X = m.maxTerrainCellX
-	}
-	if coord.Z < m.minTerrainCellZ {
-		coord.Z = m.minTerrainCellZ
-	}
-	if coord.Z > m.maxTerrainCellZ {
-		coord.Z = m.maxTerrainCellZ
-	}
-	return coord
+	return engine.ClampCellCoord(coord, m.minTerrainCellX, m.maxTerrainCellX, m.minTerrainCellZ, m.maxTerrainCellZ)
 }
 
 func (m *worldStreamingManager) coordFromWorldXZ(x, z float32) CellCoord {
@@ -290,16 +174,11 @@ func (m *worldStreamingManager) coordFromWorldXZ(x, z float32) CellCoord {
 }
 
 func (m *worldStreamingManager) rawCoordFromWorldXZ(x, z float32) CellCoord {
-	return CellCoord{
-		X: int(math.Floor(float64(x / m.cfg.CellSize))),
-		Z: int(math.Floor(float64(z / m.cfg.CellSize))),
-	}
+	return engine.CellCoordFromWorldXZ(x, z, m.cfg.CellSize)
 }
 
 func cellDistanceSq(a, b CellCoord) int {
-	dx := a.X - b.X
-	dz := a.Z - b.Z
-	return dx*dx + dz*dz
+	return engine.CellCoordDistanceSq(a, b)
 }
 
 func (m *worldStreamingManager) UpdateStreaming(cameraPos mgl32.Vec3) {
@@ -571,7 +450,7 @@ func (m *worldStreamingManager) updateActiveCellLODs(cameraPos mgl32.Vec3) {
 			continue
 		}
 
-		dist := horizontalDistance(cameraPos, cell.Bounds.Center)
+		dist := engine.HorizontalDistanceXZ(cameraPos, cell.Bounds.Center)
 		terrainDist := dist + cell.LodDistanceBias
 		if terrainDist < 0 {
 			terrainDist = 0
@@ -581,28 +460,28 @@ func (m *worldStreamingManager) updateActiveCellLODs(cameraPos mgl32.Vec3) {
 			decorDist = 0
 		}
 
-		cell.TerrainLOD = selectLODWithHysteresis(
-			cell.TerrainLOD,
+		cell.TerrainLOD = cellLODLevel(engine.SelectStreamingLODWithHysteresis(
+			int(cell.TerrainLOD),
 			terrainDist,
 			m.cfg.TerrainLODNearDistance,
 			m.cfg.TerrainLODMidDistance,
 			m.cfg.TerrainLODHysteresis,
-		)
-		cell.DecorLOD = selectLODWithHysteresis(
-			cell.DecorLOD,
+		))
+		cell.DecorLOD = cellLODLevel(engine.SelectStreamingLODWithHysteresis(
+			int(cell.DecorLOD),
 			decorDist,
 			m.cfg.DecorLODNearDistance,
 			m.cfg.DecorLODMidDistance,
 			m.cfg.DecorLODHysteresis,
-		)
+		))
 
-		cell.TerrainSuppressed = distanceToggleWithHysteresis(
+		cell.TerrainSuppressed = engine.DistanceToggleWithHysteresis(
 			cell.TerrainSuppressed,
 			terrainDist,
 			m.cfg.TerrainLODFarCullDistance,
 			m.cfg.TerrainLODHysteresis,
 		)
-		cell.DecorSuppressed = distanceToggleWithHysteresis(
+		cell.DecorSuppressed = engine.DistanceToggleWithHysteresis(
 			cell.DecorSuppressed,
 			decorDist,
 			m.cfg.DecorLODFarCullDistance,
@@ -611,70 +490,6 @@ func (m *worldStreamingManager) updateActiveCellLODs(cameraPos mgl32.Vec3) {
 
 		m.ensureTerrainLODMesh(cell, cell.TerrainLOD)
 	}
-}
-
-func selectLODWithHysteresis(
-	current cellLODLevel,
-	distance float32,
-	nearDistance float32,
-	midDistance float32,
-	hysteresis float32,
-) cellLODLevel {
-	if nearDistance < 0 {
-		nearDistance = 0
-	}
-	if midDistance <= nearDistance+0.001 {
-		midDistance = nearDistance + 0.001
-	}
-	if hysteresis < 0 {
-		hysteresis = 0
-	}
-
-	switch current {
-	case cellLODMid:
-		if distance < nearDistance-hysteresis {
-			return cellLODNear
-		}
-		if distance > midDistance+hysteresis {
-			return cellLODFar
-		}
-		return cellLODMid
-	case cellLODFar:
-		if distance < nearDistance-hysteresis {
-			return cellLODNear
-		}
-		if distance < midDistance-hysteresis {
-			return cellLODMid
-		}
-		return cellLODFar
-	default:
-		if distance > midDistance+hysteresis {
-			return cellLODFar
-		}
-		if distance > nearDistance+hysteresis {
-			return cellLODMid
-		}
-		return cellLODNear
-	}
-}
-
-func distanceToggleWithHysteresis(current bool, distance, threshold, hysteresis float32) bool {
-	if threshold <= 0 {
-		return false
-	}
-	if hysteresis < 0 {
-		hysteresis = 0
-	}
-	if current {
-		return distance > threshold-hysteresis
-	}
-	return distance > threshold+hysteresis
-}
-
-func horizontalDistance(a, b mgl32.Vec3) float32 {
-	dx := a.X() - b.X()
-	dz := a.Z() - b.Z()
-	return float32(math.Sqrt(float64(dx*dx + dz*dz)))
 }
 
 func (m *worldStreamingManager) terrainStepForLOD(lod cellLODLevel) int {

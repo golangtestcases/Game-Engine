@@ -17,12 +17,11 @@ func init() {
 // Context передается в колбэки жизненного цикла игры.
 // Он содержит общие подсистемы и данные текущего кадра.
 type Context struct {
-	Window        *glfw.Window
-	Camera        *Camera
-	Renderer      *Renderer
-	WaterRenderer *WaterRenderer
-	GlowRenderer  *GlowRenderer
-	Projection    mgl32.Mat4
+	Window       *glfw.Window
+	Camera       *Camera
+	Renderer     *Renderer
+	GlowRenderer *GlowRenderer
+	Projection   mgl32.Mat4
 
 	// Time — абсолютное время от старта приложения.
 	// DeltaTime — длительность предыдущего кадра, используется для frame-rate independent логики.
@@ -66,14 +65,11 @@ func Run(cfg Config, game Game) error {
 	projection := mgl32.Perspective(mgl32.DegToRad(cfg.Graphics.FOV), float32(width)/float32(height), cfg.Graphics.Near, cfg.Graphics.Far)
 
 	ctx := &Context{
-		Window:   window,
-		Camera:   camera,
-		Renderer: renderer,
-		// Legacy water renderer больше не поднимается автоматически.
-		// Канонический путь воды/подводных эффектов: OceanSystem.
-		WaterRenderer: nil,
-		GlowRenderer:  glowRenderer,
-		Projection:    projection,
+		Window:       window,
+		Camera:       camera,
+		Renderer:     renderer,
+		GlowRenderer: glowRenderer,
+		Projection:   projection,
 	}
 
 	if err := game.Init(ctx); err != nil {

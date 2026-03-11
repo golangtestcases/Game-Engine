@@ -130,66 +130,7 @@ func (g *subnauticaGame) renderGeometry(ctx *engine.Context, shadowMap *engine.S
 	}
 
 	editorWaterVisible := !g.editor.Enabled || g.editor.WaterVisible
-	depth := ctx.Camera.Position.Y()
-	underwaterBlend := g.oceanSystem.UnderwaterBlend(ctx.Camera.Position.Y())
-	if !editorWaterVisible {
-		// Русский комментарий: в режиме редактирования без воды убираем подводное затухание,
-		// чтобы оператор получал читаемую геометрию при терраформинге и расстановке объектов.
-		underwaterBlend = 0
-	}
-	underwaterAtmosphere := engine.SanitizeUnderwaterAtmosphere(g.sceneLighting.Underwater)
-	fogColor := g.computeFogColor(depth, underwaterBlend)
-	lightingState := engine.DefaultLightingState()
-	if g.lightManager != nil {
-		lightingState = g.lightManager.LightingState()
-	}
-
-	fog := g.qualitySettings.Fog
-	fogRangeNear, fogRangeFar := g.fogRangeForFrame(fog, underwaterBlend)
-	fogDensity := 1 + (g.streamingConfig.FogDensity-1)*underwaterBlend
-	fogStrength := (fog.BaseStrength + fog.UnderwaterBoost*underwaterBlend) * fogDensity
-	caustics := g.qualitySettings.Caustics
-	causticsParams := engine.ClampUnderwaterCausticsParams(g.sceneLighting.Caustics)
-	causticsQualityScale := caustics.Base + caustics.UnderwaterBoost*underwaterBlend
-	if causticsQualityScale < 0 {
-		causticsQualityScale = 0
-	}
-	// Русский комментарий: scene-настройки задают форму каустики, quality-профиль масштабирует только интенсивность.
-	causticsParams.Intensity *= causticsQualityScale
-	if !editorWaterVisible {
-		causticsParams.Intensity = 0
-	}
-
-	atmosphereFrame := engine.AtmosphereState{
-		Fog: engine.FogSettings{
-			Color:     fogColor,
-			RangeNear: fogRangeNear,
-			RangeFar:  fogRangeFar,
-			Strength:  fogStrength,
-			Amount:    fog.Amount,
-		},
-		Underwater: engine.UnderwaterAtmosphere{
-			Blend:               underwaterBlend,
-			FogDensity:          underwaterAtmosphere.FogDensity,
-			FogColor:            underwaterAtmosphere.FogColor,
-			DepthTint:           underwaterAtmosphere.DepthTint,
-			SunlightAttenuation: underwaterAtmosphere.SunlightAttenuation,
-			VisibilityDistance:  underwaterAtmosphere.VisibilityDistance,
-			DepthScale:          1.0,
-		},
-		Caustics:   causticsParams,
-		WaterLevel: g.oceanSystem.WaterLevel(),
-		TimeSec:    ctx.Time,
-	}
-	lightingFrame := engine.LightingFrame{
-		Lighting:   lightingState,
-		Atmosphere: atmosphereFrame,
-		Shadow: engine.ShadowState{
-			Map:              shadowMap,
-			LightSpaceMatrix: lightSpace,
-			TextureUnit:      1,
-		},
-	}
+	lightingFrame, lightingState := g.buildEnvironmentLightingFrame(ctx, shadowMap, lightSpace, editorWaterVisible)
 
 	ctx.Renderer.Use()
 	ctx.Renderer.ApplyLightingFrame(lightingFrame)
