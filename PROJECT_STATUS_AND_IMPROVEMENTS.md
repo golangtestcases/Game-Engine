@@ -14,9 +14,12 @@
   - `examples/subnautica/coop_commands.go`
 - Cell streaming + LOD по террейну и декору (hysteresis, culling, density).
   - `examples/subnautica/world_streaming.go`
+  - `examples/subnautica/world_streaming_update.go`
+  - `examples/subnautica/world_streaming_terrain.go`
+  - `examples/subnautica/world_streaming_plants.go`
 - Редактируемый террейн: кисть, raycast, сохранение/загрузка JSON.
   - `objects/editable_terrain.go`
-  - `examples/subnautica/editor_mode.go`
+  - `examples/subnautica/editor_mode*.go`
   - `examples/subnautica/terrain_runtime.go`
 - Продвинутый рендер: render graph, shadow pass, ocean system, туман, glow-растения, quality presets.
   - `engine/render_graph.go`

@@ -61,15 +61,17 @@ func (p *ShadowPass) SetCameraConfig(config ShadowCameraConfig) {
 
 func (p *ShadowPass) Name() string         { return "ShadowPass" }
 func (p *ShadowPass) Type() RenderPassType { return PassShadow }
-func (p *ShadowPass) Inputs() []string     { return []string{"lightManager"} }
-func (p *ShadowPass) Outputs() []string    { return []string{"shadowMap", "lightSpaceMatrix"} }
+func (p *ShadowPass) Inputs() []string     { return []string{RenderResourceLightManager} }
+func (p *ShadowPass) Outputs() []string {
+	return []string{RenderResourceShadowMap, RenderResourceLightSpaceMatrix}
+}
 
 func (p *ShadowPass) Execute(ctx *RenderContext) error {
 	if p.shadowMap == nil || p.shadowShader == nil {
 		return nil
 	}
 
-	lightMgr, ok := ctx.GetResource("lightManager")
+	lightMgr, ok := ctx.GetResource(RenderResourceLightManager)
 	if !ok {
 		return nil
 	}
@@ -109,8 +111,8 @@ func (p *ShadowPass) Execute(ctx *RenderContext) error {
 	w, h := ctx.Context.Window.GetSize()
 	p.shadowMap.Unbind(int32(w), int32(h))
 
-	ctx.SetResource("shadowMap", p.shadowMap)
-	ctx.SetResource("lightSpaceMatrix", p.shadowMap.LightSpaceMatrix)
+	ctx.SetResource(RenderResourceShadowMap, p.shadowMap)
+	ctx.SetResource(RenderResourceLightSpaceMatrix, p.shadowMap.LightSpaceMatrix)
 	return nil
 }
 
@@ -130,9 +132,9 @@ func NewGeometryPass(clearColor [4]float32, renderFunc func(*Context, *ShadowMap
 func (p *GeometryPass) Name() string         { return "GeometryPass" }
 func (p *GeometryPass) Type() RenderPassType { return PassGeometry }
 func (p *GeometryPass) Inputs() []string {
-	return []string{"shadowMap", "lightSpaceMatrix", "lightManager"}
+	return []string{RenderResourceShadowMap, RenderResourceLightSpaceMatrix, RenderResourceLightManager}
 }
-func (p *GeometryPass) Outputs() []string { return []string{"sceneColor"} }
+func (p *GeometryPass) Outputs() []string { return []string{RenderResourceSceneColor} }
 
 func (p *GeometryPass) Execute(ctx *RenderContext) error {
 	gl.ClearColor(p.clearColor[0], p.clearColor[1], p.clearColor[2], p.clearColor[3])
@@ -141,10 +143,10 @@ func (p *GeometryPass) Execute(ctx *RenderContext) error {
 	var shadowMap *ShadowMap
 	var lightSpace mgl32.Mat4
 
-	if sm, ok := ctx.GetResource("shadowMap"); ok {
+	if sm, ok := ctx.GetResource(RenderResourceShadowMap); ok {
 		shadowMap = sm.(*ShadowMap)
 	}
-	if ls, ok := ctx.GetResource("lightSpaceMatrix"); ok {
+	if ls, ok := ctx.GetResource(RenderResourceLightSpaceMatrix); ok {
 		lightSpace = ls.(mgl32.Mat4)
 	}
 
@@ -152,7 +154,7 @@ func (p *GeometryPass) Execute(ctx *RenderContext) error {
 		p.renderFunc(ctx.Context, shadowMap, lightSpace)
 	}
 
-	ctx.SetResource("sceneColor", true)
+	ctx.SetResource(RenderResourceSceneColor, true)
 	return nil
 }
 
@@ -171,14 +173,14 @@ func NewPostProcessPass(name string, renderFunc func(*Context)) *PostProcessPass
 
 func (p *PostProcessPass) Name() string         { return p.name }
 func (p *PostProcessPass) Type() RenderPassType { return PassPostProcess }
-func (p *PostProcessPass) Inputs() []string     { return []string{"sceneColor"} }
-func (p *PostProcessPass) Outputs() []string    { return []string{"finalColor"} }
+func (p *PostProcessPass) Inputs() []string     { return []string{RenderResourceSceneColor} }
+func (p *PostProcessPass) Outputs() []string    { return []string{RenderResourceFinalColor} }
 
 func (p *PostProcessPass) Execute(ctx *RenderContext) error {
 	if p.renderFunc != nil {
 		p.renderFunc(ctx.Context)
 	}
-	ctx.SetResource("finalColor", true)
+	ctx.SetResource(RenderResourceFinalColor, true)
 	return nil
 }
 
@@ -193,7 +195,7 @@ func NewUIPass(renderFunc func(*Context)) *UIPass {
 
 func (p *UIPass) Name() string         { return "UIPass" }
 func (p *UIPass) Type() RenderPassType { return PassUI }
-func (p *UIPass) Inputs() []string     { return []string{"finalColor"} }
+func (p *UIPass) Inputs() []string     { return []string{RenderResourceFinalColor} }
 func (p *UIPass) Outputs() []string    { return []string{} }
 
 func (p *UIPass) Execute(ctx *RenderContext) error {

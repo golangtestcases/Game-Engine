@@ -57,7 +57,7 @@ func (g *subnauticaGame) executeEnvironmentRenderGraph(ctx *engine.Context) erro
 		return nil
 	}
 	g.renderContext.Context = ctx
-	g.renderContext.SetResource("lightManager", g.lightManager)
+	g.renderContext.SetResource(engine.RenderResourceLightManager, g.lightManager)
 	return g.renderGraph.Execute(g.renderContext)
 }
 
